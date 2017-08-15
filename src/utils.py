@@ -7,17 +7,16 @@ import numpy as np
 
 from tflearn.data_utils import string_to_semi_redundant_sequences
 
-def testPic(artPath):
-  artFiles = listdir(artPath)
-  for art in artFiles:
-    artPic = Image.open(artPath + art)
-    artData = np.array(artPic)
-    print(artData)
-    artData = artData.flatten()
-    print(artData)
-    break
-
 def generatePics(cardsPath, artPath='art', image_width=64, image_height=None, proportion=1):
+  '''
+  Creates images of the artwork section of magic the gathering cards
+  Inputs:
+    cardsPath: path to magic the gather card scans
+    artPath: subpath that will be appended to cardsPath to store card artwork ('art')
+    image_width: width in pixels of final artwork (64)
+    image_height: height in pixel of final artwork, if None will be set to image_width (None)
+    proportion: proportion of cards to create artwork for, for testing (1)
+  '''
   if not image_height:
     image_height = image_width
 
@@ -38,54 +37,6 @@ def generatePics(cardsPath, artPath='art', image_width=64, image_height=None, pr
     if int((index / len(cards)) * 10000) % 10 == 0:
       print ("Percent done: %2.1f %%" % ((index / len(cards)) * 100))
 
-<<<<<<< Updated upstream
-def generateCardToTypeDict(jsonPath):
-=======
-def generateCardToTypeDict(jsonPath, cutoffSize=100):
-  '''
-  Creates a dictionary of card names to card types from a json file, only including types with a large enough representation. Creates a multihot relationship
-  Inputs:
-    jsonPath: path to magic the gather json file for card information
-    cutoffSize: minimum size for a type to be included (100)
-  Outputs:
-    cardNameToCategories: dictionary from card names to the appropriate category of types
-    numCategories: the total number of represented categories, not including the "other" category
-  '''
->>>>>>> Stashed changes
-  jsonFile = io.open(jsonPath)
-  cardData = json.load(jsonFile)
-
-  numOfType = {}
-
-  for cardName in cardData.keys():
-    if 'types' in cardData[cardName]:
-      for type in cardData[cardName]['types']:
-        if not type in numOfType:
-          numOfType[type] = 0
-        numOfType[type]+=1
-
-  typeToCategory = {}
-  numCategories = 0
-
-  for type in numOfType:
-    if numOfType[type] > 100:
-      typeToCategory[type] = numCategories
-      numCategories+=1
-
-  cardNameToCategories = {}
-
-  for cardName in cardData.keys():
-    category = [0 for _ in range(numCategories)]
-    if 'types' in cardData[cardName]:
-      for type in cardData[cardName]['types']:
-        if type in typeToCategory:
-          category[typeToCategory[type]] = 1
-    cardNameToCategories[cardName] = category
-
-  return (cardNameToCategories, numCategories)
-
-<<<<<<< Updated upstream
-=======
 def generateCardToSimpleTypeDict(jsonPath, cutoffSize=100):
   '''
   Creates a dictionary of card names to the card's primary type from a json file, only including primary types with a large enough representation. Creates a onehot relationship
@@ -131,7 +82,6 @@ def generateCardToSimpleTypeDict(jsonPath, cutoffSize=100):
 
   return (cardNameToCategories, numCategories, typeToCategory)
 
->>>>>>> Stashed changes
 def representsInt(s):
   '''
   Returns True if the passed in string represents an int, False otherwise
@@ -145,81 +95,6 @@ def representsInt(s):
       return True
   except ValueError:
       return False
-
-def turnPicsToInputs(artPath, jsonPath, cutoffSize=500, testProp=0.2):
-  '''
-  Turns card artwork into array representation and pairs each card with its multihot type encoding, separating training and test/validation sets
-  Inputs:
-    artPath: path to card art directory
-    jsonPath: path to card info json file
-    cutoffSize: minimum representation for a type to be valid (500)
-    testProp: proportion of art to separate from traingin for test/validation (0.2)
-  Output:
-    X: training art arrays
-    Y: training category targets
-    X_Test: testing art arrays
-    Y_Test: testing category targets
-  '''
-  cardNameToCategories, numCategories = generateCardToTypeDict(jsonPath)
-
-  X = []
-  Y = []
-  X_Test = []
-  Y_Test = []
-
-  artFiles = listdir(artPath)
-  for art in artFiles:
-    if art == '.DS_Store':
-      continue
-    fileParts = art.split('.')
-    if(representsInt(fileParts[0])):
-      fileParts.pop(0)
-    if fileParts[0][-1] == ' ':
-      fileParts[0] = fileParts[0][:-1]
-    if not fileParts[0] in cardNameToCategories:
-      cardNameToCategories[fileParts[0]] = [0 for _ in range(numCategories)]
-    artPic = Image.open(artPath + art)
-    artArray = np.array(artPic, dtype='float64')
-    artData = artArray
-    if random.random() < testProp:
-      X_Test.append(artData)
-      Y_Test.append(cardNameToCategories[fileParts[0]])
-    else:
-      X.append(artData)
-      Y.append(cardNameToCategories[fileParts[0]])
-  
-  return (X,Y), (X_Test, Y_Test)
-
-def generateCardToSimpleTypeDict(jsonPath, cutoffSize):
-  jsonFile = io.open(jsonPath)
-  cardData = json.load(jsonFile)
-
-  numOfType = {}
-
-  for cardName in cardData.keys():
-    if 'types' in cardData[cardName]:
-      if not cardData[cardName]['types'][0] in numOfType:
-        numOfType[cardData[cardName]['types'][0]] = 0
-      numOfType[cardData[cardName]['types'][0]]+=1
-
-  typeToCategory = {}
-  numCategories = 0
-
-  for type in numOfType:
-    if numOfType[type] > cutoffSize:
-      typeToCategory[type] = numCategories
-      numCategories+=1
-
-  cardNameToCategories = {}
-
-  for cardName in cardData.keys():
-    category = numCategories
-    if 'types' in cardData[cardName]:
-      if cardData[cardName]['types'][0] in typeToCategory:
-        category = typeToCategory[cardData[cardName]['types'][0]]
-    cardNameToCategories[cardName] = category
-
-  return (cardNameToCategories, numCategories)
 
 def turnPicsToSimpleInputs(artPath, jsonPath, cutoffSize=500, testProp=0.2):
   '''
@@ -297,66 +172,6 @@ def getLiveDemoPicsToInput(artPath, cardPath, jsonPath, cutoffSize=500, numDesir
   categoryToType = dict((v,k) for k,v in typeToCategory.items())
   return inputNames, inputs, numCategories, categoryToType, cardNameToCategories
 
-def padding(sequence, desiredLength):
-  paddedSequence = sequence[:desiredLength]
-  paddedSequence.extend([0 for _ in range(desiredLength - len(paddedSequence))])
-  return paddedSequence
-
-def generateTypeSubtypeToNameInputs(jsonPath, testProp=0.2):
-  jsonFile = io.open(jsonPath)
-  cardData = json.load(jsonFile)
-
-  sequences = []
-  testSequences = []
-  totalString = ''
-
-  for cardName in cardData.keys():
-    element = ''
-    if 'types' in cardData[cardName]:
-      for type in cardData[cardName]['types']:
-        element+=type
-        element+=','
-      element= element[:-1] + ';'
-    if 'subtypes' in cardData[cardName]:
-      for subtype in cardData[cardName]['subtypes']:
-        element+=subtype
-        element+=','
-      element = element[:-1] + ';'
-    element+=cardName
-    if random.random() < testProp:
-      testSequences.append(element)
-    else:
-      sequences.append(element)
-    totalString+=element
-
-  _, _, dictionary = string_to_semi_redundant_sequences(totalString)
-  dictionary = dict((k, v+1) for k,v in dictionary.items())
-  dictionary[''] = 0
-
-  def mapToDict(sequence):
-    encoding = []
-    for char in sequence:
-      encoding.append(dictionary[char])
-    return encoding
-
-  sequences = list(map(mapToDict, sequences))
-  testSequences = list(map(mapToDict, testSequences))
-
-  res = dict((v,k) for k,v in dictionary.items())
-
-  longestSequence = 0
-  for sequence in sequences:
-    if len(sequence) > longestSequence and len(sequence) != 160:
-      longestSequence = len(sequence)
-  for sequence in testSequences:
-    if len(sequence) > longestSequence and len(sequence) != 160:
-      longestSequence = len(sequence)
-
-  sequences = list(map(lambda seq: padding(seq, longestSequence), sequences))
-  testSequences = list(map(lambda seq: padding(seq, longestSequence), testSequences))
-
-  return sequences, testSequences, longestSequence, dictionary
-
 def simpleGenerateTypeSubtypeToNameInputs(jsonPath, maxLength=75):
   jsonFile = io.open(jsonPath)
   cardData = json.load(jsonFile)
@@ -379,4 +194,4 @@ def simpleGenerateTypeSubtypeToNameInputs(jsonPath, maxLength=75):
     totalString+=element 
     totalString+='\n\n'
 
-  return string_to_semi_redundant_sequences(totalString), totalString
+  return string_to_semi_redundant_sequences(totalString, maxLength), totalString
