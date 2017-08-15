@@ -2,3 +2,6 @@
 /data/
 .DS_Store
 /src/.DS_Store
+/src/*.index
+/src/*.meta
+/src/*.data*
