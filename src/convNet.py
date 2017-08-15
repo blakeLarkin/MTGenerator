@@ -1,4 +1,4 @@
-from __future__ import division, print_function, absolute_import
+from __future__ import division, absolute_import
 
 import tflearn
 from tflearn.data_utils import shuffle, to_categorical
@@ -46,8 +46,7 @@ def artToMainTypeModel(artPath, jsonPath, testProp):
   model = tflearn.DNN(network, tensorboard_verbose=0, checkpoint_path='./classifier_checkpoints/', best_checkpoint_path='./best_classifier_checkpoints')
   model.fit(X, Y, n_epoch=50, shuffle=True, validation_set=(X_Test, Y_Test), show_metric=True, batch_size=100, run_id='mtg_classifier')
 
-def typeSubtypeNameGenerator(jsonPath, testProp, maxLength):
-  # TODO: check why maxLength is messing up
+def typeSubtypeNameGenerator(jsonPath, testProp, maxLengt):
   (X, Y, charIndex), totalString = simpleGenerateTypeSubtypeToNameInputs(jsonPath, maxLength)
 
   print(X)
@@ -73,6 +72,6 @@ def typeSubtypeNameGenerator(jsonPath, testProp, maxLength):
     model.fit(X, Y, validation_set=testProp, batch_size=128, n_epoch=1, show_metric=True, run_id='typeSubtypeName')
     print("-- TESTING...")
     print("-- Test with temperature of 1.0 --")
-    print(m.generate(600, temperature=1.0, seq_seed=seed))
+    print(model.generate(600, temperature=1.0, seq_seed=seed))
     print("-- Test with temperature of 0.5 --")
-    print(m.generate(600, temperature=0.5, seq_seed=seed))
+    print(model.generate(600, temperature=0.5, seq_seed=seed))

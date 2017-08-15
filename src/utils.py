@@ -77,6 +77,7 @@ def generateCardToSimpleTypeDict(jsonPath, cutoffSize=100):
         category = typeToCategory[cardData[cardName]['types'][0]]
     cardNameToCategories[cardName] = category
 
+
   print('test')
   print(typeToCategory)
 
