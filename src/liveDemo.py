@@ -13,8 +13,20 @@ from numpy import nonzero
 from utils import *
 from models import *
 
-def demoArtToPrimaryTypeNetwork(artPath, cardPath, jsonPath, modelPath, numDesired=10):
-  inputNames, inputs, numCategories, categoryToType, cardNameToCategories = getLiveDemoPicsToInput(artPath, cardPath, jsonPath, numDesired=numDesired)
+def demoArtToPrimaryTypeNetwork(artPath, cardPath, jsonPath, modelPath, numDesired=10,
+                                  showPics=False):
+  '''
+  Loads and tests a trained convolutional classifier model for a live demo
+  Inputs:
+    artPath: path to card art
+    cardPath: path to card scans
+    jsonPath: path to card data json file
+    modelPath: path to trained model
+    numDesired: size of subset for demo (10)
+    showPics: boolean for wether or not card art/scans should be displayed (False)
+  '''
+  inputNames, inputs, numCategories, categoryToType, cardNameToCategories = \
+    getLiveDemoPicsToInput(artPath, cardPath, jsonPath, numDesired=numDesired, showPics=showPics)
 
   print('categoryToType')
   print(categoryToType)

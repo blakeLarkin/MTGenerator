@@ -10,7 +10,18 @@ from tflearn.data_augmentation import ImageAugmentation
 
 from utils import *
 
-def artToPrimaryTypeModel(numCategories, checkpoint_path='./classifier_checkpoints/', best_checkpoint_path='./best_classifier_checkpoints'):
+def artToPrimaryTypeModel(numCategories, checkpoint_path='./classifier_checkpoints/',
+                            best_checkpoint_path='./best_classifier_checkpoints/'):
+  '''
+  Convolutional network model for categorizing card art into primary types
+  Inputs:
+    numCategories: total number of valid categories
+    checkpoint_path: path to save model after every epoch ('./classifier_checkpoints/')
+    best_checkpoint_path: path to save the best models by
+      validation ('./best_classifier_checkpoints/')
+  Outputs:
+    model: convolutional model, ready to be trained
+  '''
   # Data Preprocessing and Augmentation
   preprocessor = ImagePreprocessing()
   preprocessor.add_featurewise_zero_center(mean=102.59733902)
@@ -32,12 +43,21 @@ def artToPrimaryTypeModel(numCategories, checkpoint_path='./classifier_checkpoin
   network = fully_connected(network, 512, activation='relu')
   network = dropout(network, 0.5)
   network = fully_connected(network, numCategories, activation='softmax')
-  network = regression(network, optimizer='adam', loss='categorical_crossentropy', learning_rate=0.001)
+  network = regression(network, optimizer='adam', loss='categorical_crossentropy',
+                        learning_rate=0.001)
 
-  model = tflearn.DNN(network, tensorboard_verbose=0, checkpoint_path='./classifier_checkpoints/', best_checkpoint_path='./best_classifier_checkpoints')
+  model = tflearn.DNN(network, tensorboard_verbose=0, checkpoint_path='./classifier_checkpoints/',
+                        best_checkpoint_path='./best_classifier_checkpoints')
   return model
 
-def typeSubtypeNameGeneratorModel(maxLength, charIndex, checkpoint_path='./generator_checkpoints'):
+def typeSubtypeNameGeneratorModel(maxLength, charIndex, checkpoint_path='./generator_checkpoints/'):
+  '''
+  Recurrent network model for generating card types, subtypes, and names
+  Inputs:
+    maxLength: the maximum length for a generated sequence
+    charIndex: map from chars to the index they represent in a onehot encoding
+    checkpoint_path: path to save model after every epoch ('./generator_checkpoints/')
+  '''
   network = input_data(shape=[None, maxLength, len(charIndex)])
   network = lstm(network, 512, return_seq=True)
   network = dropout(network, 0.5)
@@ -46,7 +66,10 @@ def typeSubtypeNameGeneratorModel(maxLength, charIndex, checkpoint_path='./gener
   network = lstm(network, 512)
   network = dropout(network, 0.5)
   network = fully_connected(network, len(charIndex), activation='softmax')
-  network = regression(network, optimizer='adam', loss='categorical_crossentropy', learning_rate=0.001)
+  network = regression(network, optimizer='adam', loss='categorical_crossentropy',
+                        learning_rate=0.001)
 
-  model = tflearn.SequenceGenerator(network, tensorboard_verbose=0, dictionary=charIndex, seq_maxlen=maxLength, clip_gradients=5.0, checkpoint_path='./generator_checkpoints/')
+  model = tflearn.SequenceGenerator(network, tensorboard_verbose=0, dictionary=charIndex,
+                                      seq_maxlen=maxLength, clip_gradients=5.0,
+                                      checkpoint_path='./generator_checkpoints/')
   return model
