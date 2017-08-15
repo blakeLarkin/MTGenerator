@@ -39,7 +39,8 @@ def generatePics(cardsPath, artPath='art', image_width=64, image_height=None, pr
 
 def generateCardToSimpleTypeDict(jsonPath, cutoffSize=100):
   '''
-  Creates a dictionary of card names to the card's primary type from a json file, only including primary types with a large enough representation. Creates a onehot relationship
+  Creates a dictionary of card names to the card's primary type from a json file, only including
+    primary types with a large enough representation. Creates a onehot relationship
   Inputs:
     jsonPath: path to magic the gather json file for card information
     cutoffSize: minimum size for a type to be included (100)
@@ -99,7 +100,8 @@ def representsInt(s):
 
 def turnPicsToSimpleInputs(artPath, jsonPath, cutoffSize=500, testProp=0.2):
   '''
-  Turns card artwork into array representation and pairs each card with its onehot primary type encoding, separating training and test/validation sets
+  Turns card artwork into array representation and pairs each card with its onehot primary type
+    encoding, separating training and test/validation sets
   Inputs:
     artPath: path to card art directory
     jsonPath: path to card info json file
@@ -110,6 +112,7 @@ def turnPicsToSimpleInputs(artPath, jsonPath, cutoffSize=500, testProp=0.2):
     Y: training category targets
     X_Test: testing art arrays
     Y_Test: testing category targets
+    numCategories: total number of valid categories
   '''
   cardNameToCategories, numCategories, _ = generateCardToSimpleTypeDict(jsonPath, cutoffSize)
 
@@ -143,8 +146,26 @@ def turnPicsToSimpleInputs(artPath, jsonPath, cutoffSize=500, testProp=0.2):
   
   return (X,Y), (X_Test, Y_Test), numCategories
 
-def getLiveDemoPicsToInput(artPath, cardPath, jsonPath, cutoffSize=500, numDesired=10, showPics=False):
-  cardNameToCategories, numCategories, typeToCategory = generateCardToSimpleTypeDict(jsonPath, cutoffSize)
+def getLiveDemoPicsToInput(artPath, cardPath, jsonPath, cutoffSize=500, numDesired=10,
+                            showPics=False):
+  '''
+  Creates the data subset for a live demo of the convolutional network
+  Inputs:
+    artPath: path to card art
+    cardPath: path to card scans
+    jsonPath: path to card data json file
+    cutoffSize: minimum representation for a primary type to be valid (500)
+    numDesired: size of demo subset (10)
+    showPics: boolean of whether or not to open card art/scans (False)
+  Outputs:
+    inputNames: array of names of cards in subset
+    inputs: array representation of card art in subset
+    numCategories: number of total valid type categories
+    categoryToType: map from category number to correct type
+    cardNameToCategories: map from card name to category
+  '''
+  cardNameToCategories, numCategories, typeToCategory = generateCardToSimpleTypeDict(jsonPath,
+                                                                                      cutoffSize)
   inputNames = []
   inputs = []
   
@@ -174,6 +195,18 @@ def getLiveDemoPicsToInput(artPath, cardPath, jsonPath, cutoffSize=500, numDesir
   return inputNames, inputs, numCategories, categoryToType, cardNameToCategories
 
 def simpleGenerateTypeSubtypeToNameInputs(jsonPath, maxLength=75):
+  '''
+  Generates input sequences for type, subtype, name generation
+  Inputs:
+    jsonPath: path to card data json file
+    maxLength: maximum length for a sequence (75)
+  Outputs:
+    inputs: array of encoded sequences
+    Outputs: array of encodings for the next character in sequence
+    char_idx: map from chars in sequence to their ids in the encoding
+    totalString: the complete string of card data, each line of which has the format
+      'type1,type2;subtype1,subtype2;name'
+  '''
   jsonFile = io.open(jsonPath)
   cardData = json.load(jsonFile)
 
