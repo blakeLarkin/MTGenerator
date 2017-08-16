@@ -5,4 +5,4 @@
 /src/*.index
 /src/*.meta
 /src/*.data*
-/src/checkpoint/
+/src/checkpoint
