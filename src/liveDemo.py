@@ -54,19 +54,53 @@ def demoArtToPrimaryTypeNetwork(artPath, cardPath, jsonPath, modelPath, numDesir
   print('Percentage Correct: %2.2f%%' % (numCorrect * 100 / numDesired))
   print('Wrong Cards: ' + str(wrongCards))
 
-def demo1():
+def demoNameTypeSubtypeGenerator(jsonPath, modelPath, maxLength):
   '''
-  Runs first live demo, 3 primary type classifications with art showing
+  Loads and tests a trained recurrent generator model for live demo
+  Inputs:
+    jsonPath: path to card data json file
+    maxLength: the maximum length of a single generated sample
+  '''
+  (_, _, charIndex), totalString = simpleGenerateTypeSubtypeToNameInputs(jsonPath, maxLength)
+
+  model = typeSubtypeNameGeneratorModel(maxLength, charIndex)
+  model.load(modelPath)
+
+  for i in range(4):
+    randomIndex = random.randint(0, len(totalString) -  maxLength - 1)
+    seed = totalString[randomIndex:randomIndex + maxLength]
+    print('\nGenerated test with temperature of %1.2f' % (1.0 - i * 0.25))
+    print(model.generate(200, temperature=(1.0 - i * 0.25), seq_seed=seed))
+
+
+def testDemo1():
+  '''
+  Runs a test demo, 50 primary type classifications with art showing
   '''
   demoArtToPrimaryTypeNetwork('../data/mtg cards/art/', '../data/mtg cards/cards/',
                                 '../data/mtg data/AllCards.json',
-                                './best_classifier_checkpoints9533', numDesired=3, showPics=True)
+                                './best_classifier_checkpoints9533', numDesired=50, showPics=True)
+
+def testDemo2():
+  '''
+  Runs a test demo, 55000 primary type classifications without art showing
+  '''
+  demoArtToPrimaryTypeNetwork('../data/mtg cards/art/', '../data/mtg cards/cards/',
+                                '../data/mtg data/AllCards.json',
+                                './best_classifier_checkpoints9533', numDesired=10000,
+                                showPics=False)
+
+def demo1():
+  '''
+  Runs first live demo, 500 primary type classifications without art showing
+  '''
+  demoArtToPrimaryTypeNetwork('../data/mtg cards/art/', '../data/mtg cards/cards/',
+                                '../data/mtg data/AllCards.json',
+                                './best_classifier_checkpoints9533', numDesired=500)
 
 def demo2():
   '''
-  Runs second live demo, 50 primary type classification without art showing
+  Runs second live demo, generates type, subtype, name samples of temperature 1, 0.75, 0.5, 0.25
   '''
-  demoArtToPrimaryTypeNetwork('../data/mtg cards/art/', '../data/mtg cards/cards/',
-                                '../data/mtg data/AllCards.json',
-                                './best_classifier_checkpoints9533', numDesired=1000)
+  demoNameTypeSubtypeGenerator('../data/mtg data/AllCards.json', './generator_checkpoints-6610', 70)
 
