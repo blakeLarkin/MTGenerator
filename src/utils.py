@@ -21,6 +21,7 @@ def generatePics(cardsPath, artPath='art', image_width=64, image_height=None, pr
     image_height = image_width
 
   cards = listdir(cardsPath)
+  print('Generating Card Art')
   for index, cardPath in enumerate(cards):
     if cardPath == '.DS_Store' or not random.random() < proportion :
       continue
@@ -36,6 +37,7 @@ def generatePics(cardsPath, artPath='art', image_width=64, image_height=None, pr
     art.save(cardsPath + '../' + artPath + '/' + cardPath)
     if int((index / len(cards)) * 10000) % 10 == 0:
       print ("Percent done: %2.1f %%" % ((index / len(cards)) * 100))
+  print('Done')
 
 def generateCardToSimpleTypeDict(jsonPath, cutoffSize=100):
   '''
@@ -66,21 +68,17 @@ def generateCardToSimpleTypeDict(jsonPath, cutoffSize=100):
     if numOfType[type] > cutoffSize:
       typeToCategory[type] = numCategories
       numCategories+=1
-  typeToCategory['other'] = numCategories
+  typeToCategory['Other'] = numCategories
   numCategories+=1
 
   cardNameToCategories = {}
 
   for cardName in cardData.keys():
-    category = typeToCategory['other']
+    category = typeToCategory['Other']
     if 'types' in cardData[cardName]:
       if cardData[cardName]['types'][0] in typeToCategory:
         category = typeToCategory[cardData[cardName]['types'][0]]
     cardNameToCategories[cardName] = category
-
-
-  print('test')
-  print(typeToCategory)
 
   return (cardNameToCategories, numCategories, typeToCategory)
 
@@ -114,7 +112,7 @@ def turnPicsToSimpleInputs(artPath, jsonPath, cutoffSize=500, testProp=0.2):
     Y_Test: testing category targets
     numCategories: total number of valid categories
   '''
-  cardNameToCategories, numCategories, _ = generateCardToSimpleTypeDict(jsonPath, cutoffSize)
+  cardNameToCategories, numCategories, typeToCategory = generateCardToSimpleTypeDict(jsonPath, cutoffSize)
 
   X = []
   Y = []
@@ -122,6 +120,7 @@ def turnPicsToSimpleInputs(artPath, jsonPath, cutoffSize=500, testProp=0.2):
   Y_Test = []
 
   artFiles = listdir(artPath)
+  print('Generating Art Inputs')
   for index, art in enumerate(artFiles):
     if art == '.DS_Store':
       continue
@@ -131,7 +130,7 @@ def turnPicsToSimpleInputs(artPath, jsonPath, cutoffSize=500, testProp=0.2):
     if fileParts[0][-1] == ' ':
       fileParts[0] = fileParts[0][:-1]
     if not fileParts[0] in cardNameToCategories:
-      cardNameToCategories[fileParts[0]] = numCategories
+      cardNameToCategories[fileParts[0]] = typeToCategory['Other']
     artPic = Image.open(artPath + art)
     artArray = np.array(artPic, dtype='float64')
     artData = artArray
@@ -143,6 +142,7 @@ def turnPicsToSimpleInputs(artPath, jsonPath, cutoffSize=500, testProp=0.2):
       Y.append(cardNameToCategories[fileParts[0]])
     if int((index / len(artFiles)) * 10000) % 10 == 0:
       print ("Percent done: %2.1f %%" % ((index / len(artFiles)) * 100))
+  print('Done')
   
   return (X,Y), (X_Test, Y_Test), numCategories
 
@@ -171,7 +171,8 @@ def getLiveDemoPicsToInput(artPath, cardPath, jsonPath, cutoffSize=500, numDesir
   
   artFiles = listdir(artPath)
   subset = random.sample(artFiles, numDesired)
-  for art in subset:
+  print('Generating Live Demo Input Subset')
+  for index, art in enumerate(subset):
     if art == '.DS_Store':
       continue
     fileParts = art.split('.')
@@ -180,7 +181,7 @@ def getLiveDemoPicsToInput(artPath, cardPath, jsonPath, cutoffSize=500, numDesir
     if fileParts[0][-1] == ' ':
       fileParts[0] = fileParts[0][:-1]
     if not fileParts[0] in cardNameToCategories:
-      cardNameToCategories[fileParts[0]] = numCategories
+      cardNameToCategories[fileParts[0]] = typeToCategory['Other']
     artPic = Image.open(artPath + art)
     artArray = np.array(artPic, dtype='float64')
     artData = artArray
@@ -190,6 +191,9 @@ def getLiveDemoPicsToInput(artPath, cardPath, jsonPath, cutoffSize=500, numDesir
       cardPic = Image.open(cardPath + art)
       cardPic.show()
       artPic.show()
+    if int((index / numDesired) * 10000) % 10 == 0:
+      print ("Percent done: %2.1f %%" % ((index / numDesired) * 100))
+  print('Done')
 
   categoryToType = dict((v,k) for k,v in typeToCategory.items())
   return inputNames, inputs, numCategories, categoryToType, cardNameToCategories
