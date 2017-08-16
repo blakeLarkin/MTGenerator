@@ -8,7 +8,8 @@ from tflearn.layers.recurrent import lstm
 from tflearn.layers.estimator import regression
 from tflearn.data_preprocessing import ImagePreprocessing
 from tflearn.data_augmentation import ImageAugmentation
-from numpy import nonzero
+import io
+import json
 
 from utils import *
 from models import *
@@ -28,17 +29,15 @@ def demoArtToPrimaryTypeNetwork(artPath, cardPath, jsonPath, modelPath, numDesir
   inputNames, inputs, numCategories, categoryToType, cardNameToCategories = \
     getLiveDemoPicsToInput(artPath, cardPath, jsonPath, numDesired=numDesired, showPics=showPics)
 
-  print('categoryToType')
-  print(categoryToType)
-  print(numCategories)
-
   model = artToPrimaryTypeModel(numCategories)
   model.load(modelPath, weights_only=True)
 
   jsonFile = io.open(jsonPath)
   cardData = json.load(jsonFile)
 
-  print(categoryToType)
+  numCorrect = 0
+  wrongCards = []
+
   for i in range(numDesired):
     print('\nCard Name: ' + inputNames[i])
     prediction = (model.predict([inputs[i]])).tolist()[0]
@@ -48,4 +47,26 @@ def demoArtToPrimaryTypeNetwork(artPath, cardPath, jsonPath, modelPath, numDesir
         category = j
     print('Prediction: ' + categoryToType[category])
     print('Actual: ' + categoryToType[cardNameToCategories[inputNames[i]]] + '\n')
+    if categoryToType[category] == categoryToType[cardNameToCategories[inputNames[i]]]:
+      numCorrect+=1
+    else:
+      wrongCards.append(inputNames[i])
+  print('Percentage Correct: %2.2f%%' % (numCorrect * 100 / numDesired))
+  print('Wrong Cards: ' + str(wrongCards))
+
+def demo1():
+  '''
+  Runs first live demo, 3 primary type classifications with art showing
+  '''
+  demoArtToPrimaryTypeNetwork('../data/mtg cards/art/', '../data/mtg cards/cards/',
+                                '../data/mtg data/AllCards.json',
+                                './best_classifier_checkpoints9533', numDesired=3, showPics=True)
+
+def demo2():
+  '''
+  Runs second live demo, 50 primary type classification without art showing
+  '''
+  demoArtToPrimaryTypeNetwork('../data/mtg cards/art/', '../data/mtg cards/cards/',
+                                '../data/mtg data/AllCards.json',
+                                './best_classifier_checkpoints9533', numDesired=1000)
 

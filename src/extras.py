@@ -102,7 +102,7 @@ def generateCardToTypeDict(jsonPath, cutoffSize=100):
     cutoffSize: minimum size for a type to be included (100)
   Outputs:
     cardNameToCategories: dictionary from card names to the appropriate category of types
-    numCategories: the total number of represented categories, not including the "other" category
+    numCategories: the total number of represented categories
   '''
   jsonFile = io.open(jsonPath)
   cardData = json.load(jsonFile)
