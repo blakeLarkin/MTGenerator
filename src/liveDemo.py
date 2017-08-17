@@ -35,6 +35,8 @@ def demoArtToPrimaryTypeNetwork(artPath, cardPath, jsonPath, modelPath, numDesir
   jsonFile = io.open(jsonPath)
   cardData = json.load(jsonFile)
 
+  input('\nPress Enter to continue...')
+
   numCorrect = 0
   wrongCards = []
 
@@ -50,9 +52,14 @@ def demoArtToPrimaryTypeNetwork(artPath, cardPath, jsonPath, modelPath, numDesir
     if categoryToType[category] == categoryToType[cardNameToCategories[inputNames[i]]]:
       numCorrect+=1
     else:
-      wrongCards.append(inputNames[i])
-  print('Percentage Correct: %2.2f%%' % (numCorrect * 100 / numDesired))
-  print('Wrong Cards: ' + str(wrongCards))
+      wrongCards.append((inputNames[i], categoryToType[category],
+        categoryToType[cardNameToCategories[inputNames[i]]]))
+  print('\n\nPercentage Correct: %2.2f%%' % (numCorrect * 100 / numDesired))
+  print('\nWRONG CARDS:')
+  for wrongCard in wrongCards:
+    print('Card Name: ' + wrongCard[0])
+    print('Prediction: ' + wrongCard[1])
+    print('Actual: ' + wrongCard[2] + '\n')
 
 def demoNameTypeSubtypeGenerator(jsonPath, modelPath, maxLength):
   '''
@@ -66,11 +73,19 @@ def demoNameTypeSubtypeGenerator(jsonPath, modelPath, maxLength):
   model = typeSubtypeNameGeneratorModel(maxLength, charIndex)
   model.load(modelPath)
 
-  for i in range(4):
+  input('\nPress Enter to continue...')
+
+  for i in range(1,5):
     randomIndex = random.randint(0, len(totalString) -  maxLength - 1)
     seed = totalString[randomIndex:randomIndex + maxLength]
-    print('\nGenerated test with temperature of %1.2f' % (1.0 - i * 0.25))
-    print(model.generate(200, temperature=(1.0 - i * 0.25), seq_seed=seed))
+    temperature = i * 0.25
+    print('\nGenerated test with temperature of %1.2f' % temperature)
+    generated = model.generate(120, temperature=temperature, seq_seed=seed)
+    generated = generated.split('\n')
+    generated = generated[:-1]
+    generated.pop(0)
+    generated = '\n'.join(generated)
+    print(generated)
 
 
 def testDemo1():
@@ -102,5 +117,5 @@ def demo2():
   '''
   Runs second live demo, generates type, subtype, name samples of temperature 1, 0.75, 0.5, 0.25
   '''
-  demoNameTypeSubtypeGenerator('../data/mtg data/AllCards.json', './generator_checkpoints-6610', 70)
+  demoNameTypeSubtypeGenerator('../data/mtg data/AllCards.json', './generator_checkpoints-23796', 70)
 
